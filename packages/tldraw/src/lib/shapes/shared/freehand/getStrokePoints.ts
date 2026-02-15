@@ -27,7 +27,12 @@ export function getStrokePoints(
 	const t = 0.15 + (1 - streamline) * 0.85
 
 	// Whatever the input is, make sure that the points are in number[][].
-	let pts = rawInputPoints.map(Vec.From)
+	// Preserve isCorner flags set by getPointsFromDrawSegments through Vec.From.
+	let pts = rawInputPoints.map((p) => {
+		const v = Vec.From(p)
+		if ((p as any).isCorner) (v as any).isCorner = true
+		return v
+	})
 
 	let pointsRemovedFromNearEnd = 0
 
@@ -122,9 +127,17 @@ export function getStrokePoints(
 		pts.push(pts[pts.length - 1].clone())
 	}
 
+	let cornerCooldown = 0
 	for (let i = 1, n = pts.length; i < n; i++) {
+		const isCorner = !!(pts[i] as any).isCorner
+		if (isCorner) cornerCooldown = 2
+		const skipStreamline = isCorner || cornerCooldown > 0
+		if (!isCorner && cornerCooldown > 0) cornerCooldown--
+
 		point =
-			!t || (options.last && i === n - 1) ? pts[i].clone() : pts[i].clone().lrp(prev.point, 1 - t)
+			!t || (options.last && i === n - 1) || skipStreamline
+				? pts[i].clone()
+				: pts[i].clone().lrp(prev.point, 1 - t)
 
 		// If the new point is the same as the previous point, skip ahead.
 		if (prev.point.equals(point)) continue
@@ -157,6 +170,8 @@ export function getStrokePoints(
 			runningLength: totalLength,
 			// The stroke point's radius
 			radius: 1,
+			// Whether this point is a segment junction corner
+			isCorner,
 		}
 
 		// Push it to the strokePoints array.

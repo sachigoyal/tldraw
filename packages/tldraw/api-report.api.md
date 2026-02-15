@@ -2829,6 +2829,8 @@ export interface StrokePoint {
     // (undocumented)
     input: Vec;
     // (undocumented)
+    isCorner?: boolean;
+    // (undocumented)
     point: Vec;
     // (undocumented)
     pressure: number;

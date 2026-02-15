@@ -55,6 +55,13 @@ function partitionAtElbows(points: StrokePoint[]): StrokePoint[][] {
 		}
 		currentPartition.push(thisPoint)
 
+		// Split at marked segment junctions with a meaningful angle change
+		if (thisPoint.isCorner && dpr < 0.7) {
+			result.push(cleanUpPartition(currentPartition))
+			currentPartition = [thisPoint]
+			continue
+		}
+
 		if (dpr > 0.7) {
 			// Not an elbow
 			continue

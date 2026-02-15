@@ -46,4 +46,5 @@ export interface StrokePoint {
 	distance: number
 	runningLength: number
 	radius: number
+	isCorner?: boolean
 }

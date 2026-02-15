@@ -133,8 +133,16 @@ export function getPointsFromDrawSegment(
 export function getPointsFromDrawSegments(segments: TLDrawShapeSegment[], scaleX = 1, scaleY = 1) {
 	const points: Vec[] = []
 
-	for (const segment of segments) {
-		getPointsFromDrawSegment(segment, scaleX, scaleY, points)
+	for (let i = 0; i < segments.length; i++) {
+		getPointsFromDrawSegment(segments[i], scaleX, scaleY, points)
+		// Mark segment junction and a few preceding points as corners to prevent
+		// streamline lag from creating a curve/thinning at the junction
+		if (i < segments.length - 1 && points.length > 0) {
+			const count = Math.min(3, points.length)
+			for (let j = points.length - count; j < points.length; j++) {
+				;(points[j] as any).isCorner = true
+			}
+		}
 	}
 
 	return points
